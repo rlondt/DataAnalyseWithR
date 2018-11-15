@@ -2,6 +2,7 @@
 
 library(readr)   #read_csv() functie
 library(ggplot2)
+library(tidyverse)
 
 #inlezen bestand
 funda <- read_csv("datafiles/2018-10-04_tekoop_funda.csv")
@@ -56,10 +57,48 @@ ggplot(data = funda, aes(x = PLAATS)) +
 
 
 ### OPGAVE
-# maak een staafdiagram van het aatnal te koop staande woningen
+# maak een staafdiagram van het aantal te koop staande woningen
 # naar de variabele KAMERS
 # zet KAMERS daartoe eerst om in een factor variabele
 
+# minder goede manier gesorteerd op aantal kamers
+ggplot(data = funda, aes(x = KAMERS)) +
+  geom_bar()
+
+
+
+sort(table(funda$KAMERS))
+
+funda$KAMERS <- factor(funda$KAMERS,
+                       levels = seq(0, 30, by=1))
+
+ggplot(data = funda, aes(x = KAMERS)) +
+  geom_bar(fill = "green")
+
+
+str(funda)
+
+#betere manier gesorteerd op aantal aantal kamers.
+funda <- read_csv("datafiles/2018-10-04_tekoop_funda.csv")
+
+overz02 <- funda %>%
+  group_by(KAMERS) %>%
+  summarize(AANTAL_TEKOOP = n()) %>%
+  arrange(desc(AANTAL_TEKOOP))
+overz02
+#sort(table(overz02$AANTAL_TEKOOP))
+
+ggplot(data = overz02, aes(x = reorder(overz02$KAMERS, -overz02$AANTAL_TEKOOP), y = AANTAL_TEKOOP)) +
+  #de tellingen zijn al gedaan
+  #daarom wordt het default stat argument voor barplots ("count")
+  #overschreven door stat = "identity"
+  geom_bar(stat = "identity", fill = "blue")
+
+
+#funda$KAMERS <- factor(funda$KAMERS, levels = overz02$KAMERS)
+
+ggplot(data = funda, aes(x = KAMERS)) +
+  geom_bar(fill = "yellow")
 
 #het is ook mogelijk eerst zelf de telling per categorie te doen
 #- zoals in overz01 gedaan is -
