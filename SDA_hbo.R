@@ -53,5 +53,6 @@ hbo.17.kruistab <- hbo.17.1 %>%
 
 # maatstaf voor samenhang tussen twee categoriale variabelen
 # Cramers V
+install.packages("questionr")
 require(questionr)
 cramer.v(hbo.17.kruistab[, 2:3])
