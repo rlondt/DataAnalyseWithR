@@ -31,6 +31,13 @@ ggplot(data = funda, aes(x = VRGPRIJS)) +
 ## OPGAVE
 #  Bestudeer de verdeling van vraagprijzen onder 1 mln
 #  door te varieren met aantal bins
+ggplot(data = funda, aes(x = VRGPRIJS)) +
+  geom_histogram(fill = "orange", bins = 10) +
+  xlim(c(0, 1000000))
+
+ggplot(data = funda, aes(x = VRGPRIJS)) +
+  geom_histogram(fill = "orange", bins = 300) +
+  xlim(c(0, 1000000))
 
 
 
@@ -63,6 +70,11 @@ ggplot(data = funda, aes(x = PLAATS, y = VRGPRIJS)) +
 ###OPGAVE genereer boxplots per plaats van woningen
 #         met vraagprijs tot 1 mln
 #         en draai de plaatsnamen bij de horizontale as 45 graden
+
+ggplot(data = funda, aes(x = PLAATS, y = VRGPRIJS)) +
+  ylim(c(0, 1000000))+
+  geom_boxplot(fill = "blue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 
