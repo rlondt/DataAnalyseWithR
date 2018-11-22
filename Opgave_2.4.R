@@ -3,6 +3,7 @@
 library(readr)   #read_csv() functie
 library(ggplot2)
 library(scales)   #nodig om wetenschappelijke notatie om te zetten
+library(tidyverse)
 
 #inlezen bestand
 funda <- read_csv("datafiles/2018-10-04_tekoop_funda.csv")
@@ -23,4 +24,23 @@ ggplot(data = funda, aes(x = funda$KAMERS, y= funda$VRGPRIJS)) +
 #(iv) Genereer een scatterplot met op de x-as het aantal kamers en op de y-as de oppervlakte.
 ggplot(data = funda, aes(x = funda$KAMERS, y= funda$OPP)) +
   geom_point()
+
+#Tijddiagram
+#Aantal verkochte woningen per dag in London in 2016
+
+#bron: https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads
+pp2016.london <- read_csv("datafiles/pp2016_london.csv")
+
+
+
+#Vind de vijf districten met de hoogste gemiddelde verkoopprijzen van woningen in 2016.
+group_by(pp2016.london, pp2016.london$DISTRICT) %>%
+  summarize( mean_salesprice = mean(PRICE, na.rm = TRUE)) %>%
+  arrange(desc(mean_salesprice)) %>%
+  head(5)
+
+#Zoek op Google maps waar deze districten gelokaliseerd zijn in Londen.
+
+  
+
 
