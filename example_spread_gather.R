@@ -20,3 +20,6 @@ fl1.cross <- fl1 %>%
 #back to tidy format
 fl1.tidy <- fl1.cross %>%
   gather(wkday, n_scheduled, Sun:Sat)
+
+
+sqldf('select * from fl')

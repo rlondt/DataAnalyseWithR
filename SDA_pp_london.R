@@ -1,8 +1,11 @@
+library(tidyverse)
 #Tijddiagram
 #Aantal verkochte woningen per dag in London in 2016
 
 #bron: https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads
 pp2016.london <- read_csv("datafiles/pp2016_london.csv")
+
+
 
 
 pp2016.london.1 <- pp2016.london %>%
@@ -11,12 +14,13 @@ pp2016.london.1 <- pp2016.london %>%
   summarize(AANT = n())
 
 ggplot(pp2016.london.1, aes(x=DATE, y=AANT)) +
-  geom_line()
+  geom_line() 
 
 ggplot(pp2016.london.1, aes(x=DATE, y=AANT)) +
   geom_line() +
   scale_x_datetime(date_breaks = "month", date_labels = "%b") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)
+        , title = element_text(color = "blue"))
 
 #inzoomen op januari
 
@@ -46,4 +50,9 @@ ggplot(pp2016.london.2, aes(x=DATE, y=AANT)) +
   geom_line() +
   scale_x_datetime(date_breaks = "day", date_labels = "%a") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+
+
+
+
 

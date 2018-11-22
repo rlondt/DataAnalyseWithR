@@ -5,10 +5,12 @@ set.seed(20171123)
 
 #1000000 random getallen genereren met normale verdeling
 populatie <- rnorm(n = 1000000, mean = 1000, sd = 50)
+populatie <- runif(n = 1000000, min = 0, max = 1000)
 mean(populatie)
 sd(populatie)
 
 #steekproef trekken (n = 10)
+?sample
 stkprf.getallen <- sample(1:1000000, size = 10)
 #skprf.getallen: de volgnummers van de steekproefelementen
 stkprf.pop <- populatie[stkprf.getallen] #de eigenlijke steekproef

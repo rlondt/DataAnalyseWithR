@@ -39,7 +39,7 @@ hbo.17 <- hbo.1 %>%
 #bar plot naar CROHO en GESLACHT
 
 ggplot(hbo.17.1, aes(x = CROHO, y = AANT, fill = SEXE)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", position = "dodge") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ggplot(hbo.17.1, aes(x = CROHO, y = AANT, fill = SEXE)) +
