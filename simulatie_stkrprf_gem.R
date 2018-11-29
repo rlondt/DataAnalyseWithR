@@ -9,6 +9,12 @@ populatie <- runif(n = 1000000, min = 0, max = 1000)
 mean(populatie)
 sd(populatie)
 
+populatie <- arrange(populatie)
+
+# hoofdstelling statistiek
+# steekproefverdelingen zijn normaal verdeeld. 
+# spreiding wordt wortel de wortel uit het aantal samples kleiner bij sampling
+
 #steekproef trekken (n = 10)
 ?sample
 stkprf.getallen <- sample(1:1000000, size = 10)
