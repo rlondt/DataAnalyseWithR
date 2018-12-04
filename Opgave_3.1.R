@@ -74,32 +74,3 @@ pcd.1 %>%
 
 
 
-
-install.packages('RSocrata')
-library(RSocrata) #eerst eenmalig installeren met install.packages('RSocrata')
-library(dplyr)
-
-# Formuleer vragen die dit databestand oproept en die met behulp van dit databestand te beantwoorden zijn. Beantwoord deze vragen op basis van (grafische) data analyse.
-# Kies een ander automerk waarvan verwacht wordt dat dit merk voor bepaalde kenmerken (variabelen) verschilt van het merk Opel. Ga op grond van data-analyse na of deze verwachting juist is.
-
-
-endpoint.1 <-  "https://opendata.rdw.nl/resource/m9d7-ebf2.json?voertuigsoort=Personenauto&merk=OPEL&$limit=10000"
-df.opel <- read.socrata(endpoint.1)
-class(df.opel)
-
-install.packages("Hmisc")
-library(Hmisc)
-
-describe(df.opel)
-colnames(df.opel)
-
-
-#endpoint naar dataset: https://dev.socrata.com/foundry/opendata.rdw.nl/m9d7-ebf2
-#hele dataset bevat data van alle gekentekende voertuigen in NL
-#gegevens eerste 10000 Opels inlezen
-
-endpoint.1 <-  "https://opendata.rdw.nl/resource/m9d7-ebf2.json?voertuigsoort=Personenauto&merk=OPEL&$limit=10000"
-df.opel <- read.socrata(endpoint.1)
-
-
-
