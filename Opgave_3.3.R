@@ -17,7 +17,7 @@ ggplot(df, aes(catalogusprijs, bruto_bpm)) +
 df.prepared <- mutate(df, brandstof_omschrijving_factor = as.factor(brandstof_omschrijving))
 
 ggplot(df.prepared, aes(catalogusprijs, bruto_bpm, color = df.prepared$brandstof_omschrijving_factor)) +
-  geom_point( shape = df.prepared$brandstof_omschrijving_factor ) 
+  geom_point( shape = as.factor(df.prepared$merk ) )
 
 
 
