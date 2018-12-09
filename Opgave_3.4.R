@@ -1,28 +1,32 @@
 #install.packages('elastic')
+#install.packages('futile.logger')
 
 library(elastic)
 library(tidyverse)
 library(dplyr)
 library(lubridate)
+library(futile.logger)
 
 #downloaden bestand
 
-download_and_unzip <- function(download_url){
-  opgave.bestandsnaam <- sapply(str_split(download_url, '/'),tail,1)
+download_and_unzip <- function(p_jaar, p_push_to_elastic = FALSE){
+  opgave.url <- paste ('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-',p_jaar, '_31-12-', p_jaar, '.zip', sep = '')
+  
+  opgave.bestandsnaam <- sapply(str_split(opgave.url, '/'),tail,1)
   opgave.bestandsnaam_compleet <- paste('./datafiles/',sep = '',opgave.bestandsnaam)
   opgave.uitpakdirectory <- str_replace(sapply(str_split(opgave.bestandsnaam, pattern = '\\.'), head, 1), pattern = '_', replacement = ' - ')
   opgave.uitpakdirectory_compleet <- paste('./datafiles/',sep = '',opgave.uitpakdirectory)
   opgave.ongevallen <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/Ongevallengegevens/ongevallen.txt')
-  
+
   if (!file.exists(opgave.bestandsnaam_compleet)){
-    download.file(url= download_url, destfile = paste('./datafiles/',sep = '',opgave.bestandsnaam))
+    download.file(url= opgave.url, destfile = paste('./datafiles/',sep = '',opgave.bestandsnaam))
   }
   if (!file.exists(opgave.uitpakdirectory_compleet)){
     unzip(opgave.bestandsnaam_compleet, exdir = './datafiles/' )  
   }
   
   opgave.df.ongevallen <- read_delim(file = opgave.ongevallen, delim = ',')
-  
+  flog.info('aantal records %s', count(opgave.df.ongevallen))
   opgave.df.ongevallen <- opgave.df.ongevallen %>%
     mutate(datum = dmy(paste('01', MND_NUMMER, JAAR_VKL, sep = '/')))
   
@@ -37,52 +41,111 @@ download_and_unzip <- function(download_url){
   
   opgave.df.ongevallen <- opgave.df.ongevallen[ , (colnames(opgave.df.ongevallen) %in% kolommen)]
   
+  opgave.aangrijppunten     <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/aangrijppunten.txt');
+  opgave.aardongevallen     <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/aardongevallen.txt');
+  opgave.aflopen3           <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/aflopen3.txt');
+  opgave.aflopen4           <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/aflopen4.txt');
+  opgave.aflopen5           <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/aflopen5.txt');
+  opgave.bewegingen         <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/bewegingen.txt');
+  opgave.bijzonderheden     <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/bijzonderheden.txt');
+  opgave.dagdelen           <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/dagdelen.txt');
+  opgave.dagen              <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/dagen.txt');
+  opgave.Definitie          <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/Definitie.txt');
+  opgave.inrichtingen       <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/inrichtingen.txt');
+  opgave.leeftijdsklassen   <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/leeftijdsklassen.txt');
+  opgave.lichtgesteldheden  <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/lichtgesteldheden.txt');
+  opgave.maanden            <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/maanden.txt');
+  opgave.manoeuvres         <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/manoeuvres.txt');
+  opgave.nationaliteiten    <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/nationaliteiten.txt');
+  opgave.objecttypes        <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/objecttypes.txt');
+  opgave.toedrachten        <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/toedrachten.txt');
+  opgave.wegdekken          <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/wegdekken.txt');
+  opgave.wegsituaties       <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/wegsituaties.txt');
+  opgave.wegverhardingen    <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/wegverhardingen.txt');
+  opgave.wegverlichtingen   <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/wegverlichtingen.txt');
+  opgave.zichtafstanden     <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/zichtafstanden.txt');
+  opgave.ziekenhuizen       <- paste('./datafiles/', opgave.uitpakdirectory, sep = '', '/02 TOTNL J-N-J-N/ReferentiebestandenOngevallen/ziekenhuizen.txt');
+  
+  
+  opgave.df.aangrijppunten    <- read_delim(file = opgave.aangrijppunten    , delim = ',')
+  opgave.df.aardongevallen    <- read_delim(file = opgave.aardongevallen    , delim = ',')
+  opgave.df.aflopen3          <- read_delim(file = opgave.aflopen3          , delim = ',')
+  opgave.df.aflopen4          <- read_delim(file = opgave.aflopen4          , delim = ',')
+  opgave.df.aflopen5          <- read_delim(file = opgave.aflopen5          , delim = ',')
+  opgave.df.bewegingen        <- read_delim(file = opgave.bewegingen        , delim = ',')
+  opgave.df.bijzonderheden    <- read_delim(file = opgave.bijzonderheden    , delim = ',')
+  opgave.df.dagdelen          <- read_delim(file = opgave.dagdelen          , delim = ',')
+  opgave.df.dagen             <- read_delim(file = opgave.dagen             , delim = ',')
+  opgave.df.inrichtingen      <- read_delim(file = opgave.inrichtingen      , delim = ',')
+  opgave.df.leeftijdsklassen  <- read_delim(file = opgave.leeftijdsklassen  , delim = ',')
+  opgave.df.lichtgesteldheden <- read_delim(file = opgave.lichtgesteldheden , delim = ',')
+  opgave.df.maanden           <- read_delim(file = opgave.maanden           , delim = ',')
+  opgave.df.manoeuvres        <- read_delim(file = opgave.manoeuvres        , delim = ',')
+  opgave.df.nationaliteiten   <- read_delim(file = opgave.nationaliteiten   , delim = ',')
+  opgave.df.objecttypes       <- read_delim(file = opgave.objecttypes       , delim = ',')
+  opgave.df.toedrachten       <- read_delim(file = opgave.toedrachten       , delim = ',')
+  opgave.df.wegdekken         <- read_delim(file = opgave.wegdekken         , delim = ',')
+  opgave.df.wegsituaties      <- read_delim(file = opgave.wegsituaties      , delim = ',')
+  opgave.df.wegverhardingen   <- read_delim(file = opgave.wegverhardingen   , delim = ',')
+  opgave.df.wegverlichtingen  <- read_delim(file = opgave.wegverlichtingen  , delim = ',')
+  opgave.df.zichtafstanden    <- read_delim(file = opgave.zichtafstanden    , delim = ',')
+  opgave.df.ziekenhuizen      <- read_delim(file = opgave.ziekenhuizen      , delim = ',')  
+  
+  
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.aangrijppunten    )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.aardongevallen    )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.aflopen3          )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.aflopen4          )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.aflopen5          )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.bewegingen        )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.bijzonderheden    )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.dagdelen          )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.dagen             )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.Definitie         )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.inrichtingen      )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.leeftijdsklassen  )
+  # 2011 - as.integer(str(opgave.df.ongevallen$LGD_ID))
+   
+  
+  if (class(opgave.df.ongevallen$LGD_ID)=='integer'){
+    opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.lichtgesteldheden ) 
+  } else {
+    flog.info('LDG_ID != integer voor %s ', p_jaar)
+    opgave.df.ongevallen$LGD_ID <- as.integer(opgave.df.ongevallen$LGD_ID)
+    opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.lichtgesteldheden ) 
+  }
+   
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.maanden           )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.manoeuvres        )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.nationaliteiten   )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.objecttypes       )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.toedrachten       )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.wegdekken         )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.wegsituaties      )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.wegverhardingen   )
+   opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.wegverlichtingen  )
+  # opgave.df.zichtafstanden$ZAD_ID <- as.integer(opgave.df.zichtafstanden$ZAD_ID)
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.zichtafstanden    )
+  # opgave.df.ongevallen <- left_join(opgave.df.ongevallen,  opgave.df.ziekenhuizen      )
+  
+   if(p_push_to_elastic){
+     connect("192.168.56.128", 9200)
+     docs_bulk(opgave.df.ongevallen, index=paste( 'ongevallen-', p_jaar, sep=''))
+   }
+
   return(opgave.df.ongevallen)
 }
 
 
-
-df.ongevallen_2006 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2006_31-12-2006.zip')
-df.ongevallen_2007 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2007_31-12-2007.zip')
-df.ongevallen_2008 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2008_31-12-2008.zip')
-df.ongevallen_2009 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2009_31-12-2009.zip')
-df.ongevallen_2010 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2010_31-12-2010.zip')
-df.ongevallen_2011 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2011_31-12-2011.zip')
-df.ongevallen_2012 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2012_31-12-2012.zip')
-df.ongevallen_2013 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2013_31-12-2013.zip')
-df.ongevallen_2014 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2014_31-12-2014.zip')
-df.ongevallen_2015 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2015_31-12-2015.zip')
-df.ongevallen_2016 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2016_31-12-2016.zip')
-df.ongevallen_2017 <- download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2017_31-12-2017.zip')
-
-
-# download_and_unzip('https://www.rijkswaterstaat.nl/apps/geoservices/geodata/dmc/bron/01-01-2016_31-12-2016.zip')
-
-# Provincie df.ongevallen_2017$PVE_NAAM
-
-connect("192.168.56.128", 9200)
-count()
-
-#docs_bulk(df.ongevallen_2006, index='test')
-docs_bulk(df.ongevallen_2007, index='test')
-docs_bulk(df.ongevallen_2008, index='test')
-docs_bulk(df.ongevallen_2009, index='test')
-docs_bulk(df.ongevallen_2010, index='test')
-docs_bulk(df.ongevallen_2011, index='test')
-docs_bulk(df.ongevallen_2012, index='test')
-docs_bulk(df.ongevallen_2013, index='test')
-docs_bulk(df.ongevallen_2014, index='test')
-docs_bulk(df.ongevallen_2015, index='test')
-docs_bulk(df.ongevallen_2016, index='test')
-#docs_bulk(df.ongevallen_2017, index='test')
-
-
-
-# opgave.directory_naam <- sapply(str_split(opgave.bestandsnaam, '.'),tail,1)
-# 
-# opgave.bestandsnaam
-# str_replace(sapply(str_split(opgave.bestandsnaam, pattern = '\\.'), head, 1), pattern = '_', replacement = ' - ')
-
-
-kolommen <- colnames(df.ongevallen_2017)
-
+df.ongevallen_2006 <- download_and_unzip(2006);
+df.ongevallen_2007 <- download_and_unzip(2007);
+df.ongevallen_2008 <- download_and_unzip(2008);
+df.ongevallen_2009 <- download_and_unzip(2009);
+df.ongevallen_2010 <- download_and_unzip(2010);
+df.ongevallen_2011 <- download_and_unzip(2011);
+df.ongevallen_2012 <- download_and_unzip(2012);
+df.ongevallen_2013 <- download_and_unzip(2013);
+df.ongevallen_2014 <- download_and_unzip(2014);
+df.ongevallen_2015 <- download_and_unzip(2015);
+df.ongevallen_2016 <- download_and_unzip(2016);
+df.ongevallen_2017 <- download_and_unzip(2017);
