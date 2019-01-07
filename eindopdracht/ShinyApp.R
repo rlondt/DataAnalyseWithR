@@ -12,15 +12,17 @@ library(ggplot2)
 library(tidyverse)
 library(lubridate)
 
-if(is.null(df)){
-  df <- read_rds('./datafiles/ongevallen-totaal.rds')
+if(!exists("df_totaal")){
+  df_totaal <- read_rds('../datafiles/ongevallen-totaal.rds')
 }
 
-df <- df %>%
+set.seed(2019)
+df_training <- df_totaal %>%
+  filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
   group_by(year(DATUM)) %>%
-  sample_frac(.1)
+  sample_frac(.4)
 
-dfFiltered <- df
+dfFiltered <- df_training
 
 
 
@@ -38,7 +40,7 @@ ui <- fluidPage(
                     "Selecteer jaartallen:",
                     min = 2006,
                     max = 2017,
-                    value = c(2006, 2009)
+                    value = c(2013, 2017)
         ),
         selectInput("factor",
                      label="Kies een factor",
@@ -92,7 +94,7 @@ ui <- fluidPage(
 server <- function(input, output) {
 
     filterData <- eventReactive(input$go, {
-      dfFiltered <- df %>%
+      dfFiltered <- df_training %>%
         filter(
           year(DATUM) >= input$jaarRange[1] && year(DATUM) <= input$jaarRange[2]
         )

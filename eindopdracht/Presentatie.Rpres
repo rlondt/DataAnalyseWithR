@@ -1,0 +1,413 @@
+# Factcheck pakketbezorgers veroorzaken onveilige situaties 
+========================================================
+
+author: Romano Londt  
+date: 06-01-2019  
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo       = TRUE,
+                      warning    = FALSE #, 
+                      #fig.height = 30,
+                      #fig.width  = 80
+                      )
+packages <- c("tidyverse", "ggpubr", "ggplot2", "lubridate", "gridExtra", "NbClust", "cluster", "scales")
+## Installeer packages
+for (p in packages) {
+  if (p %in% rownames(installed.packages()) == FALSE) {
+    install.packages(p, repos = 'http://cran.us.r-project.org')
+  }
+}
+## Laad the packages
+for (p in packages){
+  suppressPackageStartupMessages(
+    library(p, quietly = TRUE, character.only = TRUE ) 
+  )
+}
+```
+
+```{r init, echo=FALSE}
+#voor echte werk
+if(!exists("df_totaal")){
+  df_totaal <- read_rds('../datafiles/ongevallen-totaal.rds')
+}
+
+set.seed(2019)
+if(!exists("df_explorative")){
+  df_explorative <- df_totaal %>%
+    group_by(year(DATUM)) %>%
+    sample_frac(.2)
+
+  df_training <- df_totaal %>%
+    filter(!is.na(BREEDTE) & !is.na(LENGTE)) %>%
+    mutate(footprint = BREEDTE*LENGTE ) %>%
+    group_by(year(DATUM)) %>%
+    sample_frac(.4)
+}
+
+# # om te kijken hoe e.e.a. snel uitpakt
+# set.seed(2019)
+# df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
+# df_explorative <- df_totaal
+# df_training <- df_totaal %>%
+#   mutate(jaar = year(DATUM) ) %>%
+#   filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
+#   filter(!is.na(BREEDTE) & !is.na(LENGTE)) %>%
+#   mutate(footprint = BREEDTE*LENGTE ) %>%
+#   group_by(jaar)
+
+
+```
+
+Inhoud
+========================================================
+- Dataset
+- Vraagstelling
+- Operationalisatie
+- Verdieping
+- Conclusie
+
+Dataset
+========================================================
+- Voorbewerking  
+-- Explorative analysis (Verkennend onderzoek)  
+-- Shiny  
+
+
+
+Plot - Histogram aantallen ongevallen
+========================================================
+```{r echo=FALSE}
+ggplot(df_explorative, aes(x=df_explorative$DATUM)) + 
+  geom_line(stat = "count", alpha = .2) + 
+  labs(title="Histogram aantallen ongevallen  " ) +
+  labs(x="Datum", y="Aantal")  
+
+```  
+
+Vraagstelling
+========================================================
+##  bericht op NOS(24-12-2019)  
+
+<https://nos.nl/artikel/2264908-pakketbezorgers-veroorzaken-onveilige-verkeerssituaties.html>
+
+
+Operationalisatie(1)
+========================================================
+- hoe herkennen we pakketbezorgers?
+  - footprint van de voertuigen is groter dan normale auto's  
+  - als er meer ongevallen gebeuren met pakketbezorgers zal de gemiddelde footprint stijgen  
+- 30 kilometer zone's 
+  - maximum snelheid = 30  
+  - binnen de bebouwde kom  
+
+Operationalisatie(2)
+========================================================
+- h0 :  
+  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren gelijk gebleven
+- h1 :  
+  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren groter geworden
+
+
+Antwoord - visueel (1)
+========================================================
+
+```{r eval=FALSE, include=TRUE}
+df_hyp <- df_totaal %>%
+  filter(!is.na(BREEDTE) & !is.na(LENGTE)) %>%
+  mutate(footprint = BREEDTE*LENGTE ) %>%
+  mutate(jaar = year(DATUM))
+
+ggplot(df_hyp, aes(x=jaar, y=footprint)) + 
+  geom_boxplot(aes(group=jaar))+
+  scale_y_continuous("footprint van de voertuigen", labels = comma) +
+  scale_x_discrete("jaartal", breaks=c(2005:2018), labels=c(2005:2018) )
+
+```  
+
+Antwoord - visueel (1)
+========================================================
+```{r eval=TRUE, echo=FALSE}
+
+df_hyp <- df_totaal %>%
+  filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
+  filter(!is.na(BREEDTE) & !is.na(LENGTE)) %>%
+  mutate(footprint = BREEDTE*LENGTE ) %>%
+  mutate(jaar = as.factor(year(DATUM)))
+
+
+ggplot(df_hyp, aes(x=jaar, y=footprint)) + 
+  geom_boxplot(aes(group=jaar))+
+  scale_y_continuous("footprint van de voertuigen", labels = comma) +
+  scale_x_discrete("jaartal", breaks=c(2005:2018), labels=c(2005:2018) )
+
+```  
+- daling zichtbaar in de laatste twee jaren ten opzichte van de rest van de historie  
+
+- **Geen bewijs voor de stelling** 
+
+
+Antwoord - statistisch
+========================================================
+Jaartallen vergelijken 
+  - meerdere jaartallen(groepen)
+  - beoordelen of de gemiddelden van deze groepen significant van elkaar afwijken
+- **ANOVA**
+
+```{r eval=FALSE, include=TRUE}
+df_aov <- df_hyp %>%
+  mutate(jaar2 = as.integer(year(DATUM))) %>%
+  filter(jaar2 >= 2010 )
+
+# Compute the analysis of variance
+res.aov <- aov(footprint ~ jaar, data = df_aov)
+summary(res.aov)
+
+```  
+
+
+Antwoord - statistisch
+========================================================
+Jaartallen vergelijken 
+  - ANOVA + Tukey
+  - <http://www.sthda.com/english/wiki/one-way-anova-test-in-r>
+
+```{r echo=FALSE}
+df_aov <- df_hyp %>%
+  mutate(jaar2 = as.integer(year(DATUM))) %>%
+  filter(jaar2 >= 2010 )
+
+# Compute the analysis of variance
+res.aov <- aov(footprint ~ jaar, data = df_aov)
+summary(res.aov)
+```  
+**Significant verschil tussen groepen(jaren)**  
+  
+  
+Antwoord - statistisch
+========================================================
+- kolom diff laat het verschil zien tussen twee jaren (positief = grotere footprint voor het eerste
+  jaartal)  
+- **Laatste jaren is de footprint juist gedaald => verwerpen hypothese**  
+```{r echo=FALSE}
+options(width = 120)
+TukeyHSD(res.aov )
+```  
+**H0 hypothese verworpen maar niet de juiste richting op**
+
+Antwoord - statistisch
+========================================================
+```{r echo=FALSE}
+ plot(TukeyHSD(res.aov, ordered = FALSE))
+```  
+
+
+Verdieping
+========================================================
+- kunnen we zomaar de gemiddelden met elkaar vergelijken? 
+- is de verdeling normaal?
+
+```{r eval=FALSE, include=TRUE}
+ggplot(df_hyp)+
+  aes(x=footprint)+
+  geom_histogram(bins=50)
+
+```  
+
+
+Verdieping
+========================================================
+- kunnen we zomaar de gemiddelden met elkaar vergelijken? 
+- is de verdeling normaal?
+
+```{r echo=FALSE, eval=TRUE, include=TRUE}
+ggplot(df_hyp)+
+  aes(x=footprint)+
+  geom_histogram(bins=50)
+
+```  
+
+- **Nee** , Anova gaat uit van een normale verdeling
+
+
+Verdieping (2) - clusteren van footprints
+========================================================
+- footprints clusteren om zo een cluster te maken van grote voertuigen (pakketbezorgerbusjes)
+- algoritme k-means clustering
+-- hoeveel clusters? **Elbow-method**
+
+```{r echo=TRUE, eval=FALSE, include=TRUE}
+df_cluster <- df_hyp %>%
+  ungroup()%>%
+  select(footprint) 
+ 
+df_scaled <- scale(df_cluster)    
+k.max <- 10
+wss <- sapply(1:k.max, function(k)
+   kmeans(x = df_scaled, centers = k, nstart = 10)$tot.withinss
+)
+
+df_results <- data.frame(k = 1:k.max, within_sum_square = wss)
+
+ggplot(df_results) +
+  geom_line(aes(x = k, y = within_sum_square)) + 
+  geom_vline(xintercept = 4, linetype = "dashed")  
+
+```
+
+Verdieping (2) - clusteren van footprints
+========================================================
+- footprints clusteren om zo een cluster te maken van grote voertuigen (pakketbezorgerbusjes)
+- algoritme k-means clustering
+-- hoeveel clusters? **Elbow-method** =>  **4**
+
+```{r echo=FALSE, eval=TRUE, include=TRUE}
+df_cluster <- df_hyp %>%
+  ungroup()%>%
+  select(footprint) 
+ 
+df_scaled <- scale(df_cluster)    
+k.max <- 10
+wss <- sapply(1:k.max, function(k)
+   kmeans(x = df_scaled, centers = k, nstart = 10)$tot.withinss
+)
+
+df_results <- data.frame(k = 1:k.max, within_sum_square = wss)
+ggplot(df_results) +
+  geom_line(aes(x = k, y = within_sum_square)) + 
+  geom_vline(xintercept = 4, linetype = "dashed")  
+
+```
+
+
+Verdieping (3) - uitvoeren van clustering
+========================================================
+
+** uitvoering van de clustering  
+```{r echo=TRUE, eval=FALSE, include=TRUE}
+K <- 4
+k_means <- kmeans(x=df_scaled, centers = sort(kmeans(x=df_scaled, centers = K)$centers))
+
+df_hyp$footprint_cluster <- as.factor(k_means$cluster)
+
+ggplot(df_hyp)+
+  aes(x=footprint, fill=footprint_cluster, color=footprint_cluster)+
+  geom_bar()
+
+```
+
+Verdieping (3) - uitvoeren van clustering
+========================================================
+
+** uitvoering van de clustering  
+```{r echo=FALSE, eval=TRUE, include=TRUE}
+K <- 4
+#k_means <- kmeans(x=df_scaled, centers=K, nstart = 20)
+k_means <- kmeans(x=df_scaled, centers = sort(kmeans(x=df_scaled, centers = K)$centers))
+
+df_hyp$footprint_cluster <- as.factor(k_means$cluster)
+
+ggplot(df_hyp)+
+  aes(x=footprint, fill=footprint_cluster, color=footprint_cluster)+
+  geom_bar()
+
+```
+
+Verdieping (4) - opnieuw valideren hypothese
+========================================================
+Jaartallen vergelijken 
+* meerdere jaartallen(groepen)
+* Chi-square op basis van aantallen in clusters i.p.v. gemiddelde footprint
+```{r, echo=TRUE, eval=FALSE}
+  table(df_hyp$jaar, df_hyp$footprint_cluster)
+
+```
+
+Verdieping (4) - opnieuw valideren hypothese
+========================================================
+Jaartallen vergelijken 
+* meerdere jaartallen(groepen)
+* Chi-square op basis van aantallen in clusters i.p.v. gemiddelde footprint
+```{r, echo=FALSE}
+  table(df_hyp$jaar, df_hyp$footprint_cluster)
+
+```
+
+
+Antwoord(2) - visueel 
+========================================================
+
+```{r eval=FALSE, include=TRUE}
+df_hyp <- df_hyp %>%
+  mutate(jaar_int = as.integer(jaar)) %>%
+  ungroup()
+
+ggplot(df_hyp) + 
+  aes(x=jaar_int, color=footprint_cluster)+
+  geom_line(stat="count")+
+  scale_y_continuous("Aantal ongelukken", labels = comma) +
+  scale_x_continuous("Jaartal", breaks=c(2005:2018), labels=c(2005:2018) )
+
+```  
+
+Antwoord(2) - visueel 
+========================================================
+```{r eval=TRUE, echo=FALSE}
+df_hyp <- df_hyp %>%
+  mutate(jaar_int = as.integer(as.character(df_hyp$jaar))) %>%
+  ungroup()
+
+ggplot(df_hyp) + 
+  aes(x=jaar_int, color=footprint_cluster)+
+  geom_line(stat="count")+
+  scale_y_continuous("Aantal ongelukken", labels = comma) +
+  scale_x_continuous("Jaartal", breaks=c(2005:2018), labels=c(2005:2018) )
+
+```  
+- stijging waarneembaar voor het cluster met grootste voertuigen
+- **Wel bewijs voor de stelling** 
+
+
+Antwoord(2) - statistisch
+========================================================
+- Chi-square op basis van aantal ongelukken per jaar
+
+```{r eval=FALSE, include=TRUE}
+df_aov2 <- df_hyp %>%
+  filter(jaar_int >= 2010 )%>%
+  filter(footprint_cluster == 4 )%>%
+  mutate(jaar = as.factor(year(DATUM)))%>%
+  group_by(jaar) %>%
+  summarise(aantal = n())
+
+c <- chisq.test(df_aov2$aantal)
+c
+c$observed
+round(c$expected,2)
+```  
+  
+Antwoord(2) - statistisch
+========================================================
+  - Chi-square op basis van aantal ongelukken per jaar
+
+```{r echo=FALSE}
+df_aov2 <- df_hyp %>%
+  filter(jaar_int >= 2010 )%>%
+  filter(footprint_cluster == 4 )%>%
+  mutate(jaar = as.factor(year(DATUM)))%>%
+  group_by(jaar) %>%
+  summarise(aantal = n())
+
+c <- chisq.test(df_aov2$aantal)
+c
+c$observed
+round(c$expected,2)
+```  
+**Significant verschil tussen groepen(jaren)**  
+**Duidelijke toename te zien in aantal ongevallen met voertuigen in de grootste categorie**  
+  
+  
+Conclusie
+========================================================
+
+**Op basis van de BRON dataset is te herleiden dat voertuigen met een grotere footprint de afgelopen jaren significant meer bij ongevallen betrokken zijn geweest bij ongelukken in 30 km-zones binnen de bebouwde kom vergeleken met eerdere jaartallen.**  
+

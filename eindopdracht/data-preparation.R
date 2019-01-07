@@ -2,13 +2,29 @@
 #install.packages('elastic')
 #install.packages('futile.logger')
 
-library(elastic)
-library(tidyverse)
-library(dplyr)
-library(sf)
-library(futile.logger)
-library(lubridate)
-library(RJDBC)
+
+packages <- c("elastic"
+              ,"tidyverse"
+              ,"dplyr"
+              ,"sf"
+              ,"futile.logger"
+              ,"lubridate"
+              ,"RJDBC"
+              ,"shiny")
+
+## Installeer packages
+for (p in packages) {
+  if (p %in% rownames(installed.packages()) == FALSE) {
+    install.packages(p, repos = 'http://cran.us.r-project.org')
+  }
+}
+
+## Laad the packages
+for (p in packages){
+  suppressPackageStartupMessages(
+    library(p, quietly = TRUE, character.only = TRUE ) 
+  )
+}
 
 
 # Onderstaande functie alleen gebruiken als je tijd over hebt. Performed bar slecht door column-oriented ipv row-oriented
@@ -312,7 +328,7 @@ download_jaar <- function(p_jaar, p_push_to_elastic = FALSE){
                           WDK_AN == "overige"        ~ "Overig",
                           WDK_AN == "Overige"        ~ "Overig",
                           WDK_AN == "zand"           ~ "Zand",
-                          is.NA(WDK_AN)              ~ "onbekend",
+                          is.na(WDK_AN)              ~ "onbekend",
                           TRUE                       ~  WDK_AN)
       , OTE_AN = case_when(
         OTE_AN == "BOMEN"        ~ "BOOM",
@@ -322,7 +338,7 @@ download_jaar <- function(p_jaar, p_push_to_elastic = FALSE){
         OTE_AN == "POLITIEAUTO"  ~ "POLITIEVOERTUIG",
         OTE_AN == "OVERIGE"      ~ "OVERIG",
         OTE_AN == "rolstoel"     ~ "ROLSTOEL",
-        is.NA(OTE_AN)              ~ "ONBEKEND",
+        is.na(OTE_AN)              ~ "ONBEKEND",
         TRUE                       ~  OTE_AN)
       , UITGPOS_AN = case_when(
         UITGPOS_AN == "RAILS" ~ "Rails",
@@ -380,7 +396,7 @@ download_jaar <- function(p_jaar, p_push_to_elastic = FALSE){
 }
 
 
-download_voa <- function(p_jaartallen, p_db_host, p_db_port, p_db_sid, p_db_user, p_db_password){
+download_bron <- function(p_jaartallen, p_db_host, p_db_port, p_db_sid, p_db_user, p_db_password){
   # optie voor jdbc driver (vergroten beschikbare geheugen)
   options(java.parameters = "-Xmx12g")
   
@@ -440,7 +456,7 @@ set bijz_100 = case when 100 in (bzd_id_vm1, bzd_id_vm2, bzd_id_vm3, bzd_id_if1,
     where (GME_NAAM, PVE_NAAM) in (select name_2, name_1 from mba_gemeentes)")
 
   # index aanmaken om het bijwerken te versnellen  
-  dbExecute(conn, "create index mba_1 on mba_ongevallen(vkl_nummer)")
+  try(dbExecute(conn, "create index mba_1 on mba_ongevallen(vkl_nummer)"))
   
   # ontbrekende gemeentenamen toewijzen door te loopen over bestaande gemeentenamen 
   dbSendUpdate(conn, "declare 
