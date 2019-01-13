@@ -18,7 +18,9 @@ if(!exists("df_totaal")){
 
 set.seed(2019)
 df_training <- df_totaal %>%
-  filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
+  ungroup() %>%
+ # filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
+  filter(as.integer(year(DATUM)) >= 2012) %>%
   group_by(year(DATUM)) %>%
   sample_frac(.4)
 
@@ -34,57 +36,59 @@ ui <- fluidPage(
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-      sidebarPanel(
-        actionButton("go", "Go"),
-        sliderInput("jaarRange",
-                    "Selecteer jaartallen:",
-                    min = 2006,
-                    max = 2017,
-                    value = c(2013, 2017)
-        ),
+      sidebarPanel(width = "120px",
+        # actionButton("go", "Go"),
+        # sliderInput("jaarRange",
+        #             "Selecteer jaartallen:",
+        #             min = 2006,
+        #             max = 2017,
+        #             value = c(2013, 2017)
+        # ),
         selectInput("factor",
                      label="Kies een factor",
-                     choices = c("NIVEAUKOP"
-                                , "UUR"               # uur van de dag
-                                #, "AP3_CODE"          # soort schade /UMS materiaal
-                                , "PVE_NAAM"          # provincie
-                                , "DAGTYPE"           # weekend/week
-                                , "BEBKOM"            # bebouwde kom
-                                , "MAXSNELHD"         # maximum snelheid
-                                , "WVG_AN"            # wegvlak
-                                , "WDK_AN"            # wegdek
-                                , "WGD_CODE_1"        #
-                                , "AOL_OMS"           # partijen
-                                , "AP3_OMS"           # type schade
-                                , "LGD_OMS"           # lichtomstandigheden
-                                , "WDK_OMS"           # wegdek_omstandigheden
-                                , "WSE_OMS"           # weg_inrichting
-                                , "WVG_OMS"           # soort-wegdek
-                                , "WVL_OMS"           # wegverlichting
-                                , "DOORRIJDER"        # doorrijder
-                                , "OTE_AN"            # weghalen te weinig ingevuld
-                                , "VTGVERZ"           # voertuig verzekerd J/N
-                                , "SCHADE"            # Schade J/N
-                                , "GETRAANH"          # ?? weinig 
-                                , "GEVSTOF"           # gevaarlijke stoffen
-                                , "VTGVERL"           # voertuigverlichting
-                                , "ANTL_PAS"          # fout
-                                , "GESLACHT"          # geslacht
-                                , "RIJBEWCAT"         # categorie rijbewijzen
-                                , "UITGPOS_AN"        # uitgpositie
-                                , "VOORGBEW"          # 1-11
-                                , "AGT_TYPE"          # A/V
-                                , "IRG_CODE"          
-                                , "APKGEK"            # APK gekeurd
-                                , "LKE_OMS"           # Leeftijds klassificatie
+                     choices = c(
+                        "uur van de dag" = "UUR"               # uur van de dag
+                       , "provincie" = "PVE_NAAM"          # provincie
+                       , "weekend/week" = "DAGTYPE"           # weekend/week
+                       , "bebouwde kom" = "BEBKOM"            # bebouwde kom
+                       , "maximum snelheid" = "MAXSNELHD"         # maximum snelheid
+                       , "wegvlak" = "WVG_AN"            # wegvlak
+                       , "wegdek" = "WDK_AN"            # wegdek
+                       , "partijen" = "AOL_OMS"           # partijen
+                       , "type schade" = "AP3_OMS"           # type schade
+                       , "lichtomstandigheden" = "LGD_OMS"           # lichtomstandigheden
+                       , "wegdek_omstandigheden" = "WDK_OMS"           # wegdek_omstandigheden
+                       , "weg_inrichting" = "WSE_OMS"           # weg_inrichting
+                       , "soort-wegdek" = "WVG_OMS"           # soort-wegdek
+                       , "wegverlichting" = "WVL_OMS"           # wegverlichting
+                       , "doorrijder" = "DOORRIJDER"        # doorrijder
+                       , "weghalen te weinig ingevuld" = "OTE_AN"            # weghalen te weinig ingevuld
+                       , "voertuig verzekerd J/N" = "VTGVERZ"           # voertuig verzekerd J/N
+                       , "Schade J/N" = "SCHADE"            # Schade J/N
+                       , "?? weinig " = "GETRAANH"          # ?? weinig 
+                       , "gevaarlijke stoffen" = "GEVSTOF"           # gevaarlijke stoffen
+                       , "voertuigverlichting" = "VTGVERL"           # voertuigverlichting
+                       #, "fout" = "ANTL_PAS"          # fout
+                       , "geslacht" = "GESLACHT"          # geslacht
+                       , "categorie rijbewijzen" = "RIJBEWCAT"         # categorie rijbewijzen
+                       , "uitgpositie" = "UITGPOS_AN"        # uitgpositie
+                       , "1-11??" = "VOORGBEW"          # 1-11
+                       , "Achter/Voor??" = "AGT_TYPE"          # A/V
+                       , "APK gekeurd?" = "APKGEK"            # APK gekeurd
+                       , "Leeftijds klassificatie" = "LKE_OMS"           # Leeftijds klassificatie
+                       , "WGD_CODE_1"        #
+                       , "IRG_CODE"          
+                       , "NIVEAUKOP"
+                       #, "AP3_CODE"          # soort schade /UMS materiaal
                      ))
         
       ),
-      mainPanel(
-        textOutput("to1"),
-        plotOutput("distPlot"),
-        tableOutput("voaTabel")
-        
+      mainPanel(width = 120,
+                fillPage(
+                  plotOutput("distPlot")
+                )
+        # textOutput("to1"),
+        #tableOutput("voaTabel")
       )
     )
   )
@@ -102,27 +106,30 @@ server <- function(input, output) {
     })
       
       
-    output$distPlot <- renderPlot({
-      df <- filterData()
+    output$distPlot <- renderCachedPlot({
+      df <- dfFiltered
       
       ggplot(df, aes(x=df$DATUM, colour=df[[input$factor]])) + 
-      geom_line(stat = "count",
+      geom_line(stat = "count"
         #col=df$NIVEAUKOP, 
         # fill="green", 
-        alpha = .2) + 
+        #alpha = .2
+        ) + 
       labs(title=paste("Histogram aantallen ongevallen - ",input$factor )) +
       labs(x="Datum", y="Count")+
         facet_wrap(~PVE_NAAM)
-    })
+    },
+    cacheKeyExpr = { list(input$factor) }
+    )
   
-  output$to1 <- renderText({
-    paste("Jaartallen ", input$jaarRange[1], "-", input$jaarRange[2])
-  })
+  # output$to1 <- renderText({
+  #   paste("Jaartallen ", input$jaarRange[1], "-", input$jaarRange[2])
+  # })
   
-  output$voaTabel <- renderTable({
-    filterData()[1:100,]
-    
-  })
+  # output$voaTabel <- renderTable({
+  #   filterData()[1:100,]
+  #   
+  # })
 }
 
 # Run the application 
