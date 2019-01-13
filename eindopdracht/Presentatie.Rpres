@@ -5,6 +5,7 @@ author: Romano Londt
 date: 06-01-2019  
 
 ```{r setup, echo=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath(".."))
 knitr::opts_chunk$set(echo       = TRUE,
                       warning    = FALSE #, 
                       #fig.height = 30,
@@ -28,7 +29,8 @@ for (p in packages){
 ```{r init, echo=FALSE}
 #voor echte werk
 if(!exists("df_totaal")){
-  df_totaal <- read_rds('../datafiles/ongevallen-totaal.rds')
+  df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds') %>%
+    filter(as.integer(year(DATUM))>= 2012)
 }
 
 set.seed(2019)
@@ -74,12 +76,12 @@ Dataset
 
 
 
-Plot - Histogram aantallen ongevallen
+Plot - Diagram aantallen ongevallen per maand
 ========================================================
 ```{r echo=FALSE}
 ggplot(df_explorative, aes(x=df_explorative$DATUM)) + 
   geom_line(stat = "count", alpha = .2) + 
-  labs(title="Histogram aantallen ongevallen  " ) +
+  labs(title="Aantallen ongevallen per maand" ) +
   labs(x="Datum", y="Aantal")  
 
 ```  

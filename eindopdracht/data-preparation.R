@@ -448,6 +448,8 @@ set bijz_100 = case when 100 in (bzd_id_vm1, bzd_id_vm2, bzd_id_vm3, bzd_id_if1,
   
   # bijwerken gemeentenaam 
   nld.2 <- st_read("datafiles/NLD_adm/NLD_adm2.shp")
+  nld.2 <- filter(nld.2, TYPE_2 == 'Gemeente')
+  
   dbWriteTable(conn, "MBA_GEMEENTES", st_set_geometry(nld.2, NULL), overwrite=TRUE)
   
   # eerst de gemeentes die wel gevonden kunnen worden
