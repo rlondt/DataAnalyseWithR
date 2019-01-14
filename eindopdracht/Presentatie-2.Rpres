@@ -50,24 +50,9 @@ nld.1 <- filter(nld.1, TYPE_1 == 'Provincie')
 #voor echte werk
 
 
-# set.seed(2019)
-# df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
-# df_leeftijd <- df_totaal %>%
-#   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
-#   mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM)) %>%
-#   mutate( jaar_factor = as.factor(year(DATUM))
-#         , jaar_integer = as.integer(year(DATUM)))
-# 
-# df_explorative <- df_leeftijd %>%
-#   group_by(year(DATUM)) %>%
-#   sample_frac(.25)
-
-#om te kijken hoe e.e.a. snel uitpakt
 set.seed(2019)
-df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
-
+df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
 df_leeftijd <- df_totaal %>%
-  ungroup() %>%
   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
   mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM)) %>%
   mutate( jaar_factor = as.factor(year(DATUM))
@@ -76,6 +61,21 @@ df_leeftijd <- df_totaal %>%
 df_explorative <- df_leeftijd %>%
   group_by(year(DATUM)) %>%
   sample_frac(.25)
+
+# #om te kijken hoe e.e.a. snel uitpakt
+# set.seed(2019)
+# df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
+# 
+# df_leeftijd <- df_totaal %>%
+#   ungroup() %>%
+#   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
+#   mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM)) %>%
+#   mutate( jaar_factor = as.factor(year(DATUM))
+#         , jaar_integer = as.integer(year(DATUM)))
+# 
+# df_explorative <- df_leeftijd %>%
+#   group_by(year(DATUM)) %>%
+#   sample_frac(.25)
 
 
 ```
@@ -105,8 +105,8 @@ df_prov <- right_join(nld.1, df_prov, by = c("NAME_1" = "PVE_NAAM"))
 
 ggplot(data = df_prov) +
   geom_sf(aes(fill = gemiddelde_leeftijd))+
-  scale_fill_gradient(low = "#ffffe6", high = "#990000")+
-  facet_wrap(~jaar_integer,ncol = 3)
+  scale_fill_gradient(low = "#ffffe6", high = "#990000")#+
+  #facet_wrap(~jaar_integer,ncol = 3)
 
 ```  
 
@@ -122,8 +122,8 @@ df_prov <- right_join(nld.1, df_prov, by = c("NAME_1" = "PVE_NAAM"))
 
 ggplot(data = df_prov) +
   geom_sf(aes(fill = gemiddelde_leeftijd))+
-  scale_fill_gradient(low = "#ffffe6", high = "#990000")+
-  facet_wrap(~jaar_integer,ncol = 3)
+  scale_fill_gradient(low = "#ffffe6", high = "#990000")#+
+  #facet_wrap(~jaar_integer,ncol = 3)
 
 ```  
 
@@ -180,8 +180,8 @@ ggplot()+
   geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
   geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
   geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))
-
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  xlim(c(0, 300))
 
 ```
 
@@ -193,7 +193,8 @@ ggplot()+
   geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
   geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
   geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  xlim(c(0, 300))
 
 
 ```
@@ -206,7 +207,8 @@ Beantwoording Visueel
 ggplot(NULL, aes(x, colour= Legenda)) + 
   stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_leeftijd$leeftijd_voertuig), sd = sd(df_leeftijd$leeftijd_voertuig))) +
   stat_function(data = data.frame(x = 0:600, Legenda=factor(2)), fun = dnorm, args = list(mean = mean(df_randstad$leeftijd_voertuig), sd = sd(df_randstad$leeftijd_voertuig))) +
-  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))
+  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))+
+  xlim(c(0, 300))
 
 ```
 
@@ -217,7 +219,8 @@ Beantwoording Visueel
 ggplot(NULL, aes(x, colour= Legenda)) + 
   stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_leeftijd$leeftijd_voertuig), sd = sd(df_leeftijd$leeftijd_voertuig))) +
   stat_function(data = data.frame(x = 0:600, Legenda=factor(2)), fun = dnorm, args = list(mean = mean(df_randstad$leeftijd_voertuig), sd = sd(df_randstad$leeftijd_voertuig))) +
-  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))
+  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))+
+  xlim(c(0, 300))
 
 ```
 

@@ -52,8 +52,8 @@ df_prov <- right_join(nld.1, df_prov, by = c("NAME_1" = "PVE_NAAM"))
 
 ggplot(data = df_prov) +
   geom_sf(aes(fill = gemiddelde_leeftijd))+
-  scale_fill_gradient(low = "#ffffe6", high = "#990000")+
-  facet_wrap(~jaar_integer,ncol = 3)
+  scale_fill_gradient(low = "#ffffe6", high = "#990000")#+
+  #facet_wrap(~jaar_integer,ncol = 3)
 ```
 
 Verkennend onderzoek: is er onderscheid per provincie
@@ -107,8 +107,8 @@ data.frame(categorie=c("Leeftijd NL","Leeftijd Randstad")
 
 ```
           categorie gemiddelde   stddev
-1       Leeftijd NL  100.74396 70.09028
-2 Leeftijd Randstad   95.56343 69.12763
+1       Leeftijd NL  100.74339 69.99903
+2 Leeftijd Randstad   95.51038 68.84928
 ```
 
 Beantwoording Visueel
@@ -119,7 +119,8 @@ ggplot()+
   geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
   geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
   geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  xlim(c(0, 300))
 ```
 
 Beantwoording Visueel
@@ -134,7 +135,8 @@ Beantwoording Visueel
 ggplot(NULL, aes(x, colour= Legenda)) + 
   stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_leeftijd$leeftijd_voertuig), sd = sd(df_leeftijd$leeftijd_voertuig))) +
   stat_function(data = data.frame(x = 0:600, Legenda=factor(2)), fun = dnorm, args = list(mean = mean(df_randstad$leeftijd_voertuig), sd = sd(df_randstad$leeftijd_voertuig))) +
-  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))
+  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))+
+  xlim(c(0, 300))
 ```
 
 Beantwoording Visueel
@@ -155,13 +157,13 @@ t.test(df_randstad$leeftijd_voertuig, mu=mean(df_leeftijd$leeftijd_voertuig), al
 	One Sample t-test
 
 data:  df_randstad$leeftijd_voertuig
-t = -23.683, df = 99871, p-value < 2.2e-16
-alternative hypothesis: true mean is less than 100.744
+t = -53.727, df = 499670, p-value < 2.2e-16
+alternative hypothesis: true mean is less than 100.7434
 95 percent confidence interval:
-     -Inf 95.92323
+     -Inf 95.67059
 sample estimates:
 mean of x 
- 95.56343 
+ 95.51038 
 ```
 
 
