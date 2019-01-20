@@ -14,6 +14,7 @@ for (p in packages){
 
 #laad data
 
+df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
 
 df_summary <- df_totaal %>%
   mutate(jaar_fact = as.factor(year(DATUM))
