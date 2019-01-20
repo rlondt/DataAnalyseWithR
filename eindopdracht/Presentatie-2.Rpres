@@ -54,9 +54,10 @@ set.seed(2019)
 df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
 df_leeftijd <- df_totaal %>%
   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
-  mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM)) %>%
   mutate( jaar_factor = as.factor(year(DATUM))
-        , jaar_integer = as.integer(year(DATUM)))
+        , jaar_integer = as.integer(year(DATUM))) %>%
+  filter(jaar_integer >= 2012) %>%
+  mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM))
 
 df_explorative <- df_leeftijd %>%
   group_by(year(DATUM)) %>%
@@ -86,6 +87,11 @@ Verkennend onderzoek
 ```{r}
 ggplot(df_explorative, aes(x=leeftijd_voertuig)) + 
   geom_histogram(bins = 30, aes(fill=jaar_factor))+
+  labs(color="aantal") + 
+  xlab(label = "Leeftijd in maanden")+
+  ylab(label = "Aantal")+
+  guides(fill=guide_legend(title="Jaartal"))+
+  xlim(c(0,600))+
   facet_wrap(~jaar_factor,ncol = 3)
 
 ```
@@ -165,9 +171,13 @@ df_randstad <- df_leeftijd  %>%
   mutate(randstad = PVE_NAAM %in% randstad) %>%
   filter(randstad==TRUE)
 
-data.frame(categorie=c("Leeftijd NL","Leeftijd Randstad")
-, gemiddelde=c(mean(df_leeftijd$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
-, stddev=c(sd(df_leeftijd$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
+df_rest <- df_leeftijd  %>%
+  mutate(randstad = PVE_NAAM %in% randstad) %>%
+  filter(randstad==FALSE)
+
+data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
+, gemiddelde=c(mean(df_rest$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
+, stddev=c(sd(df_rest$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
 
 
 ```
@@ -177,11 +187,15 @@ Beantwoording Visueel
 ```{r eval=FALSE}
 
 ggplot()+
-  geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
-  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
-  geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  geom_density(data=df_rest, aes(x=leeftijd_voertuig, fill="leeftijd overig"), alpha=0.25)+
+  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill="leeftijd randstad"), alpha=0.25)+
+  geom_vline(aes(xintercept = mean(df_rest$leeftijd_voertuig), color="leeftijd overig"))+
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd randstad"))+
+  labs(color="", fill="")+
+  xlab(label = "Leeftijd voertuig in maanden")+
+  ylab(label = "Dichtheidsfunctie")+
   xlim(c(0, 300))
+
 
 ```
 
@@ -190,10 +204,13 @@ Beantwoording Visueel
 ```{r echo=FALSE, eval=TRUE}
 
 ggplot()+
-  geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
-  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
-  geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  geom_density(data=df_rest, aes(x=leeftijd_voertuig, fill="leeftijd overig"), alpha=0.25)+
+  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill="leeftijd randstad"), alpha=0.25)+
+  geom_vline(aes(xintercept = mean(df_rest$leeftijd_voertuig), color="leeftijd overig"))+
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd randstad"))+
+  labs(color="", fill="")+
+  xlab(label = "Leeftijd voertuig in maanden")+
+  ylab(label = "Dichtheidsfunctie")+
   xlim(c(0, 300))
 
 
@@ -205,9 +222,9 @@ Beantwoording Visueel
 ```{r eval=FALSE}
 
 ggplot(NULL, aes(x, colour= Legenda)) + 
-  stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_leeftijd$leeftijd_voertuig), sd = sd(df_leeftijd$leeftijd_voertuig))) +
+  stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_rest$leeftijd_voertuig), sd = sd(df_rest$leeftijd_voertuig))) +
   stat_function(data = data.frame(x = 0:600, Legenda=factor(2)), fun = dnorm, args = list(mean = mean(df_randstad$leeftijd_voertuig), sd = sd(df_randstad$leeftijd_voertuig))) +
-  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))+
+  scale_colour_manual(values = c("red", "blue"), labels = c("Rest", "Randstad"))+
   xlim(c(0, 300))
 
 ```
@@ -229,7 +246,7 @@ Beantwoording Statistisch
 ========================================================
 
 ```{r echo=TRUE, eval=TRUE, include=TRUE}
-t.test(df_randstad$leeftijd_voertuig, mu=mean(df_leeftijd$leeftijd_voertuig), alternative = "less", conf.level = 0.95)
+t.test(df_randstad$leeftijd_voertuig, mu=mean(df_rest$leeftijd_voertuig), alternative = "less", conf.level = 0.99)
 
 ```
 

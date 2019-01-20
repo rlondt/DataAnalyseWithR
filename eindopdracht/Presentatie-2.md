@@ -31,6 +31,11 @@ Verkennend onderzoek
 ```r
 ggplot(df_explorative, aes(x=leeftijd_voertuig)) + 
   geom_histogram(bins = 30, aes(fill=jaar_factor))+
+  labs(color="aantal") + 
+  xlab(label = "Leeftijd in maanden")+
+  ylab(label = "Aantal")+
+  guides(fill=guide_legend(title="Jaartal"))+
+  xlim(c(0,600))+
   facet_wrap(~jaar_factor,ncol = 3)
 ```
 
@@ -100,15 +105,19 @@ df_randstad <- df_leeftijd  %>%
   mutate(randstad = PVE_NAAM %in% randstad) %>%
   filter(randstad==TRUE)
 
-data.frame(categorie=c("Leeftijd NL","Leeftijd Randstad")
-, gemiddelde=c(mean(df_leeftijd$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
-, stddev=c(sd(df_leeftijd$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
+df_rest <- df_leeftijd  %>%
+  mutate(randstad = PVE_NAAM %in% randstad) %>%
+  filter(randstad==FALSE)
+
+data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
+, gemiddelde=c(mean(df_rest$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
+, stddev=c(sd(df_rest$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
 ```
 
 ```
           categorie gemiddelde   stddev
-1       Leeftijd NL  100.74339 69.99903
-2 Leeftijd Randstad   95.51038 68.84928
+1   Leeftijd overig   116.4835 75.93038
+2 Leeftijd Randstad   103.7824 73.07885
 ```
 
 Beantwoording Visueel
@@ -116,10 +125,13 @@ Beantwoording Visueel
 
 ```r
 ggplot()+
-  geom_density(data=df_leeftijd, aes(x=leeftijd_voertuig, fill=1), alpha=0.25)+
-  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill=2), alpha=0.25)+
-  geom_vline(aes(xintercept = mean(df_leeftijd$leeftijd_voertuig), color="leeftijd-totaal"))+
-  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd-randstad"))+
+  geom_density(data=df_rest, aes(x=leeftijd_voertuig, fill="leeftijd overig"), alpha=0.25)+
+  geom_density(data=df_randstad, aes(x=leeftijd_voertuig, fill="leeftijd randstad"), alpha=0.25)+
+  geom_vline(aes(xintercept = mean(df_rest$leeftijd_voertuig), color="leeftijd overig"))+
+  geom_vline(aes(xintercept = mean(df_randstad$leeftijd_voertuig), color="leeftijd randstad"))+
+  labs(color="", fill="")+
+  xlab(label = "Leeftijd voertuig in maanden")+
+  ylab(label = "Dichtheidsfunctie")+
   xlim(c(0, 300))
 ```
 
@@ -133,9 +145,9 @@ Beantwoording Visueel
 
 ```r
 ggplot(NULL, aes(x, colour= Legenda)) + 
-  stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_leeftijd$leeftijd_voertuig), sd = sd(df_leeftijd$leeftijd_voertuig))) +
+  stat_function(data = data.frame(x = 0:600, Legenda=factor(1)), fun = dnorm, args = list(mean = mean(df_rest$leeftijd_voertuig), sd = sd(df_rest$leeftijd_voertuig))) +
   stat_function(data = data.frame(x = 0:600, Legenda=factor(2)), fun = dnorm, args = list(mean = mean(df_randstad$leeftijd_voertuig), sd = sd(df_randstad$leeftijd_voertuig))) +
-  scale_colour_manual(values = c("red", "blue"), labels = c("NL", "Randstad"))+
+  scale_colour_manual(values = c("red", "blue"), labels = c("Rest", "Randstad"))+
   xlim(c(0, 300))
 ```
 
@@ -149,7 +161,7 @@ Beantwoording Statistisch
 
 
 ```r
-t.test(df_randstad$leeftijd_voertuig, mu=mean(df_leeftijd$leeftijd_voertuig), alternative = "less", conf.level = 0.95)
+t.test(df_randstad$leeftijd_voertuig, mu=mean(df_rest$leeftijd_voertuig), alternative = "less", conf.level = 0.99)
 ```
 
 ```
@@ -157,13 +169,13 @@ t.test(df_randstad$leeftijd_voertuig, mu=mean(df_leeftijd$leeftijd_voertuig), al
 	One Sample t-test
 
 data:  df_randstad$leeftijd_voertuig
-t = -53.727, df = 499670, p-value < 2.2e-16
-alternative hypothesis: true mean is less than 100.7434
-95 percent confidence interval:
-     -Inf 95.67059
+t = -82.673, df = 226270, p-value < 2.2e-16
+alternative hypothesis: true mean is less than 116.4835
+99 percent confidence interval:
+     -Inf 104.1398
 sample estimates:
 mean of x 
- 95.51038 
+ 103.7824 
 ```
 
 

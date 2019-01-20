@@ -1,0 +1,62 @@
+---
+title: "College 20190114"
+date: "14-1-2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Onderzoek
+
+- onderzoeksvraag
+- deelvragen
+- o.a. kwantitatief onderzoek
+
+- beschrijvende statistiek 
+    - grafisch
+    - beschrijvende statistiek
+- toetsende statistiek 
+
+
+## Operationaliseren
+- Bepalen welke data we gebruiken is operationalisersen  
+- Formeren van hypotheses  
+
+
+
+## toetsende statistiek
+
+- hypothese(n) formuleren  
+    - theoretische verkenning
+en/of 
+    - verkennende dataanalyse  
+
+  **toetsen op andere data** 
+
+
+## Toetsen
+
+
+significantie niveau  
+  - betrouwbaarheid ~ .95  
+  - $\alpha$ = 0.05
+
+
+twee groepen > t-toets  
+H0: gelijk    
+H1: alternatieve hypothese
+
+meerdere groepen > anova  
+H0: gelijk    
+H1: minstens 2 groepen verschillen van elkaar
+verder analyseren o.a. door TukeyHSD
+
+
+
+### bon ferrioni  
+Toetsen leveren zelf ook fouten op.
+
+  
+  
