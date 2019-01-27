@@ -412,6 +412,21 @@ Verdieping (3) - uitvoeren van clustering
 ** uitvoering van de clustering  
 ![plot of chunk unnamed-chunk-22](Presentatie-Totaal-figure/unnamed-chunk-22-1.png)
 
+Verdieping (3) - uitvoeren van clustering
+========================================================
+
+** uitvoering van de clustering  
+
+```
+# A tibble: 4 x 3
+  footprint_cluster min_footprint max_footprint
+  <fct>                     <dbl>         <dbl>
+1 1                          5.20          12.0
+2 2                         12.3           19.5
+3 3                         19.6           28.7
+4 4                         28.8           63.3
+```
+
 Verdieping (4) - opnieuw valideren hypothese
 ========================================================
 Jaartallen vergelijken 
@@ -457,7 +472,7 @@ ggplot(df_hyp) +
 
 Antwoord(2) - visueel 
 ========================================================
-![plot of chunk unnamed-chunk-26](Presentatie-Totaal-figure/unnamed-chunk-26-1.png)
+![plot of chunk unnamed-chunk-27](Presentatie-Totaal-figure/unnamed-chunk-27-1.png)
 - stijging waarneembaar voor het cluster met grootste voertuigen
 - **Wel bewijs voor de stelling** 
 

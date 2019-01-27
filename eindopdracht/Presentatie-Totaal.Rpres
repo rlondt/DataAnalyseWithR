@@ -577,6 +577,24 @@ ggplot(df_hyp)+
 
 ```
 
+Verdieping (3) - uitvoeren van clustering
+========================================================
+
+** uitvoering van de clustering  
+```{r echo=FALSE, eval=TRUE, include=TRUE}
+df_hyp %>%
+  group_by(footprint_cluster) %>%
+  summarise(  min_footprint = min(footprint)/10000
+            , max_footprint = max(footprint)/10000
+            # , min_breedte   = min(BREEDTE)/100
+            # , min_lengte    = min(LENGTE)/100
+            # , max_breedte   = max(BREEDTE)/100
+            # , max_lengte    = max(LENGTE)/100
+            #, avg_breedte   = mean(BREEDTE)/100
+            #, avg_lengte    = mean(LENGTE)/100
+            )
+```
+
 Verdieping (4) - opnieuw valideren hypothese
 ========================================================
 Jaartallen vergelijken 
