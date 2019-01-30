@@ -1,12 +1,35 @@
 <!-- # Is de stijgende welvaart/economie ook te zien in de BRON Dataset -->
-#Is de randstad welvarender dan de rest van Nederland
+#Factchecks met BRON
 ========================================================
 
 author: Romano Londt  
-date: 08-01-2019  
+date: 31-01-2019  
 
 ========================================================
 
+Inhoud
+========================================================
+- Dataset 
+- Is de randstad welvarender dan de rest van Nederland?   
+-- Vraagstelling  
+-- Operationalisatie  
+-- Conclusie  
+- Veroorzaken pakketbezorgers onveilige situaties in 30km zones?   
+-- Vraagstelling  
+-- Operationalisatie  
+-- Conclusie  
+
+Dataset
+========================================================
+- BRON  
+-- Verkeersongevallen beschikbaar gesteld door Rijkswaterstaat  
+- Voorbewerking  
+-- R-script met functies   
+-- Explorative analysis (Verkennend onderzoek)  
+-- Shiny  
+
+========================================================
+.
 ```{r setup, echo=FALSE}
 
 knitr::opts_knit$set(root.dir = normalizePath(".."))
@@ -44,14 +67,12 @@ nld.1 <- filter(nld.1, TYPE_1 == 'Provincie')
 })
 
 
-```
-
-```{r init, echo=FALSE}
 #voor echte werk
-
-
 set.seed(2019)
-df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
+try({df_totaal <- read_rds('../datafiles/ongevallen-totaal.rds')})
+if(!exists("df_totaal")){
+  df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds')
+}
 df_leeftijd <- df_totaal %>%
   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
   mutate( jaar_factor = as.factor(year(DATUM))
@@ -65,9 +86,14 @@ df_explorative <- df_leeftijd %>%
 
 # #om te kijken hoe e.e.a. snel uitpakt
 # set.seed(2019)
-# df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
+# 
+# try({df_totaal <- read_rds('../datafiles/ongevallen-klein.rds')})
+# if(!exists("df_totaal")){
+#   df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
+# }
 # 
 # df_leeftijd <- df_totaal %>%
+#   sample_frac(.25) %>%
 #   ungroup() %>%
 #   filter(!is.na(DATUM_EERSTE_TOELATING)) %>%
 #   mutate(leeftijd_voertuig = mondf(DATUM_EERSTE_TOELATING, DATUM)) %>%
@@ -80,11 +106,29 @@ df_explorative <- df_leeftijd %>%
 
 
 ```
+
+
+Verkennend onderzoek: aantallen ongevallen per maand
+========================================================
+```{r echo=FALSE}
+ggplot(df_explorative, aes(x=df_explorative$DATUM)) + 
+  geom_line(stat = "count", alpha = .2) + 
+  labs(title="Aantallen ongevallen per maand" ) +
+  labs(x="Datum", y="Aantal")  
+
+```  
+
+Is de randstad welvarender dan de rest van Nederland?
+========================================================  
+- <a href='https://www.cbs.nl/nl-nl/nieuws/2007/30/inwoners-Randstad-verdienen-het-meest'>CBS</a> 
+
+- wordt de stelling ook vanuit het BRON-bestand worden ondersteund  
+
 Verkennend onderzoek
 ========================================================
 **Wat is de statistische verdeling van de leeftijd**  
 
-```{r}
+```{r echo=FALSE}
 ggplot(df_explorative, aes(x=leeftijd_voertuig)) + 
   geom_histogram(bins = 30, aes(fill=jaar_factor))+
   labs(color="aantal") + 
@@ -97,7 +141,7 @@ ggplot(df_explorative, aes(x=leeftijd_voertuig)) +
 ```
 
 ***Poisson, behandelen als normale verdeling gezien de aantallen***  
-****Spreiding wordt wel steeds groter****  
+****Spreiding wordt wel steeds groter****   
 
 Verkennend onderzoek: is er onderscheid per provincie
 ========================================================
@@ -135,31 +179,29 @@ ggplot(data = df_prov) +
 
 **Er is verschil tussen de provincies**
 
-
-Vraagstelling
+Operationalisatie(1)
 ========================================================
 **Is de populatie binnen de randstad welvarender dan de rest van Nederland?**  
 
-Operationalisatie(1)
-========================================================
-**Randstad**  
+***Randstad***  
 - Provincies 
   - Zuid-Holland
   - Noord-Holland
   - Utrecht  
 
-**Welvarender**
+***Welvarender***
 - Hebben gemiddeld jongere voertuigen
 
 
 Operationalisatie(2)
 ========================================================
-- h0 :  
-  - gemiddelde leeftijd van de voertuigen betrokken is gelijk verdeeld over Nederland
-- h1 :  
-  - gemiddelde leeftijd van de voertuigen betrokken is in de randstad lager
+***Ho***  
+- gemiddelde leeftijd van de voertuigen betrokken is gelijk verdeeld over Nederland  
 
-Toetsen door middel van One sample T-Test
+***H1***  
+- gemiddelde leeftijd van de voertuigen betrokken is in de randstad lager 
+
+Toetsen door middel van een T-Toets voor twee onafhankelijke steekproeven
 - Eenzijdig toetsen
 - Alternative = less
 
@@ -178,7 +220,7 @@ df_rest <- df_leeftijd  %>%
 
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(tabel)
 ========================================================
 ```{r}
 
@@ -189,7 +231,7 @@ data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
 
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(density-plot)
 ========================================================
 ```{r eval=FALSE}
 
@@ -206,7 +248,7 @@ ggplot()+
 
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(density-plot)
 ========================================================
 ```{r echo=FALSE, eval=TRUE}
 
@@ -224,7 +266,7 @@ ggplot()+
 ```
 
 
-Beantwoording Visueel
+Beantwoording Visueel(statistische functie)
 ========================================================
 ```{r eval=FALSE}
 
@@ -236,7 +278,7 @@ ggplot(NULL, aes(x, colour= Legenda)) +
 
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(statistische functie)
 ========================================================
 ```{r echo=FALSE, eval=TRUE}
 
@@ -264,39 +306,12 @@ Conclusie
 ========================================================
 
 **Op basis van de BRON dataset is te herleiden dat voertuigen in de randstad gemiddeld jonger zijn dan in de rest van Nederland. Hieruit kan worden afgeleid dat de Randstad welvarender is dan de rest van het land.**  
+
+
 ========================================================  
 
-
-# Factcheck pakketbezorgers veroorzaken onveilige situaties 
-========================================================
-
-author: Romano Londt  
-date: 06-01-2019  
-
-```{r setup1, echo=FALSE}
-knitr::opts_knit$set(root.dir = normalizePath(".."))
-knitr::opts_chunk$set(echo       = TRUE,
-                      warning    = FALSE #, 
-                      #fig.height = 30,
-                      #fig.width  = 80
-                      )
-packages <- c("tidyverse", "ggpubr", "ggplot2", "lubridate", "gridExtra", "NbClust", "cluster", "scales")
-## Installeer packages
-for (p in packages) {
-  if (p %in% rownames(installed.packages()) == FALSE) {
-    install.packages(p, repos = 'http://cran.us.r-project.org')
-  }
-}
-## Laad the packages
-for (p in packages){
-  suppressPackageStartupMessages(
-    library(p, quietly = TRUE, character.only = TRUE ) 
-  )
-}
-```
-
 ```{r init1, echo=FALSE}
-#voor echte werk
+
 if(!exists("df_totaal")){
   df_totaal <- read_rds('./datafiles/ongevallen-totaal.rds') %>%
     filter(as.integer(year(DATUM))>= 2012)
@@ -317,68 +332,36 @@ if(!exists("df_explorative")){
     sample_frac(.4)
 }
 
-# # om te kijken hoe e.e.a. snel uitpakt
-# set.seed(2019)
-# df_totaal <- read_rds('./datafiles/ongevallen-klein.rds')
-# df_explorative <- df_totaal
-# df_training <- df_totaal %>%
-#   mutate(jaar = year(DATUM) ) %>%
-#   filter(BEBKOM=="BI" & MAXSNELHD == "30") %>%
-#   filter(!is.na(BREEDTE) & !is.na(LENGTE)) %>%
-#   mutate(footprint = BREEDTE*LENGTE ) %>%
-#   group_by(jaar)
-
 
 ```
 
-Inhoud
-========================================================
-- Dataset
-- Vraagstelling
-- Operationalisatie
-- Verdieping
-- Conclusie
-
-Dataset
-========================================================
-- Voorbewerking  
--- Explorative analysis (Verkennend onderzoek)  
--- Shiny  
-
-
-
-Plot - Diagram aantallen ongevallen per maand
-========================================================
-```{r echo=FALSE}
-ggplot(df_explorative, aes(x=df_explorative$DATUM)) + 
-  geom_line(stat = "count", alpha = .2) + 
-  labs(title="Aantallen ongevallen per maand" ) +
-  labs(x="Datum", y="Aantal")  
-
-```  
-
 Vraagstelling
 ========================================================
-##  bericht op NOS(24-12-2019)  
+
+**Bericht op NOS(24-12-2019)**  
 
 <https://nos.nl/artikel/2264908-pakketbezorgers-veroorzaken-onveilige-verkeerssituaties.html>
 
 
 Operationalisatie(1)
 ========================================================
-- hoe herkennen we pakketbezorgers?
+*Veroorzaken pakketbezorgers onveilige situaties in 30km zones?*
+
+**hoe herkennen we pakketbezorgers?** 
   - footprint van de voertuigen is groter dan normale auto's  
   - als er meer ongevallen gebeuren met pakketbezorgers zal de gemiddelde footprint stijgen  
-- 30 kilometer zone's 
+  
+**30 kilometer zone's**
   - maximum snelheid = 30  
   - binnen de bebouwde kom  
 
 Operationalisatie(2)
 ========================================================
-- h0 :  
-  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren gelijk gebleven
-- h1 :  
-  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren groter geworden
+***Ho***  
+- footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren gelijk gebleven
+
+***H1***  
+- footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren groter geworden
 
 
 Antwoord - visueel (1)
@@ -683,4 +666,10 @@ Conclusie
 ========================================================
 
 **Op basis van de BRON dataset is te herleiden dat voertuigen met een grotere footprint de afgelopen jaren significant meer bij ongevallen betrokken zijn geweest bij ongelukken in 30 km-zones binnen de bebouwde kom vergeleken met eerdere jaartallen.**  
+
+
+Vragen
+========================================================
+
+**???**  
 

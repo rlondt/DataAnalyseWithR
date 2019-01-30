@@ -1,12 +1,35 @@
 <!-- # Is de stijgende welvaart/economie ook te zien in de BRON Dataset -->
-#Is de randstad welvarender dan de rest van Nederland
+#Factchecks met BRON
 ========================================================
 
 author: Romano Londt  
-date: 08-01-2019  
+date: 31-01-2019  
 
 ========================================================
 
+Inhoud
+========================================================
+- Dataset 
+- Is de randstad welvarender dan de rest van Nederland?   
+-- Vraagstelling  
+-- Operationalisatie  
+-- Conclusie  
+- Veroorzaken pakketbezorgers onveilige situaties in 30km zones?   
+-- Vraagstelling  
+-- Operationalisatie  
+-- Conclusie  
+
+Dataset
+========================================================
+- BRON  
+-- Verkeersongevallen beschikbaar gesteld door Rijkswaterstaat  
+- Voorbewerking  
+-- R-script met functies   
+-- Explorative analysis (Verkennend onderzoek)  
+-- Shiny  
+
+========================================================
+.
 
 ```
 Reading layer `NLD_adm1' from data source `/home/rstudio/mba/DataAnalyseWithR/datafiles/NLD_adm/NLD_adm1.shp' using driver `ESRI Shapefile'
@@ -23,26 +46,24 @@ Cannot open data source ./datafiles/NLD_adm/NLD_adm1.shp
 ```
 
 
+Verkennend onderzoek: aantallen ongevallen per maand
+========================================================
+![plot of chunk unnamed-chunk-1](Presentatie-Totaal-figure/unnamed-chunk-1-1.png)
+
+Is de randstad welvarender dan de rest van Nederland?
+========================================================  
+- <a href='https://www.cbs.nl/nl-nl/nieuws/2007/30/inwoners-Randstad-verdienen-het-meest'>CBS</a> 
+
+- wordt de stelling ook vanuit het BRON-bestand worden ondersteund  
+
 Verkennend onderzoek
 ========================================================
 **Wat is de statistische verdeling van de leeftijd**  
 
-
-```r
-ggplot(df_explorative, aes(x=leeftijd_voertuig)) + 
-  geom_histogram(bins = 30, aes(fill=jaar_factor))+
-  labs(color="aantal") + 
-  xlab(label = "Leeftijd in maanden")+
-  ylab(label = "Aantal")+
-  guides(fill=guide_legend(title="Jaartal"))+
-  xlim(c(0,600))+
-  facet_wrap(~jaar_factor,ncol = 3)
-```
-
-![plot of chunk unnamed-chunk-1](Presentatie-Totaal-figure/unnamed-chunk-1-1.png)
+![plot of chunk unnamed-chunk-2](Presentatie-Totaal-figure/unnamed-chunk-2-1.png)
 
 ***Poisson, behandelen als normale verdeling gezien de aantallen***  
-****Spreiding wordt wel steeds groter****  
+****Spreiding wordt wel steeds groter****   
 
 Verkennend onderzoek: is er onderscheid per provincie
 ========================================================
@@ -64,35 +85,33 @@ ggplot(data = df_prov) +
 Verkennend onderzoek: is er onderscheid per provincie
 ========================================================
 
-![plot of chunk unnamed-chunk-3](Presentatie-Totaal-figure/unnamed-chunk-3-1.png)
+![plot of chunk unnamed-chunk-4](Presentatie-Totaal-figure/unnamed-chunk-4-1.png)
 
 **Er is verschil tussen de provincies**
 
-
-Vraagstelling
+Operationalisatie(1)
 ========================================================
 **Is de populatie binnen de randstad welvarender dan de rest van Nederland?**  
 
-Operationalisatie(1)
-========================================================
-**Randstad**  
+***Randstad***  
 - Provincies 
   - Zuid-Holland
   - Noord-Holland
   - Utrecht  
 
-**Welvarender**
+***Welvarender***
 - Hebben gemiddeld jongere voertuigen
 
 
 Operationalisatie(2)
 ========================================================
-- h0 :  
-  - gemiddelde leeftijd van de voertuigen betrokken is gelijk verdeeld over Nederland
-- h1 :  
-  - gemiddelde leeftijd van de voertuigen betrokken is in de randstad lager
+***Ho***  
+- gemiddelde leeftijd van de voertuigen betrokken is gelijk verdeeld over Nederland  
 
-Toetsen door middel van One sample T-Test
+***H1***  
+- gemiddelde leeftijd van de voertuigen betrokken is in de randstad lager 
+
+Toetsen door middel van een T-Toets voor twee onafhankelijke steekproeven
 - Eenzijdig toetsen
 - Alternative = less
 
@@ -110,7 +129,7 @@ df_rest <- df_leeftijd  %>%
   filter(randstad==FALSE)
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(tabel)
 ========================================================
 
 ```r
@@ -125,7 +144,7 @@ data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
 2 Leeftijd Randstad   103.7824 73.07885
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(density-plot)
 ========================================================
 
 ```r
@@ -140,12 +159,12 @@ ggplot()+
   xlim(c(0, 300))
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(density-plot)
 ========================================================
-![plot of chunk unnamed-chunk-7](Presentatie-Totaal-figure/unnamed-chunk-7-1.png)
+![plot of chunk unnamed-chunk-8](Presentatie-Totaal-figure/unnamed-chunk-8-1.png)
 
 
-Beantwoording Visueel
+Beantwoording Visueel(statistische functie)
 ========================================================
 
 ```r
@@ -156,9 +175,9 @@ ggplot(NULL, aes(x, colour= Legenda)) +
   xlim(c(0, 300))
 ```
 
-Beantwoording Visueel
+Beantwoording Visueel(statistische functie)
 ========================================================
-![plot of chunk unnamed-chunk-9](Presentatie-Totaal-figure/unnamed-chunk-9-1.png)
+![plot of chunk unnamed-chunk-10](Presentatie-Totaal-figure/unnamed-chunk-10-1.png)
 
 
 Beantwoording Statistisch
@@ -189,61 +208,39 @@ Conclusie
 ========================================================
 
 **Op basis van de BRON dataset is te herleiden dat voertuigen in de randstad gemiddeld jonger zijn dan in de rest van Nederland. Hieruit kan worden afgeleid dat de Randstad welvarender is dan de rest van het land.**  
+
+
 ========================================================  
 
 
-# Factcheck pakketbezorgers veroorzaken onveilige situaties 
-========================================================
-
-author: Romano Londt  
-date: 06-01-2019  
-
-
-
-
-
-Inhoud
-========================================================
-- Dataset
-- Vraagstelling
-- Operationalisatie
-- Verdieping
-- Conclusie
-
-Dataset
-========================================================
-- Voorbewerking  
--- Explorative analysis (Verkennend onderzoek)  
--- Shiny  
-
-
-
-Plot - Diagram aantallen ongevallen per maand
-========================================================
-![plot of chunk unnamed-chunk-11](Presentatie-Totaal-figure/unnamed-chunk-11-1.png)
 
 Vraagstelling
 ========================================================
-##  bericht op NOS(24-12-2019)  
+
+**Bericht op NOS(24-12-2019)**  
 
 <https://nos.nl/artikel/2264908-pakketbezorgers-veroorzaken-onveilige-verkeerssituaties.html>
 
 
 Operationalisatie(1)
 ========================================================
-- hoe herkennen we pakketbezorgers?
+*Veroorzaken pakketbezorgers onveilige situaties in 30km zones?*
+
+**hoe herkennen we pakketbezorgers?** 
   - footprint van de voertuigen is groter dan normale auto's  
   - als er meer ongevallen gebeuren met pakketbezorgers zal de gemiddelde footprint stijgen  
-- 30 kilometer zone's 
+  
+**30 kilometer zone's**
   - maximum snelheid = 30  
   - binnen de bebouwde kom  
 
 Operationalisatie(2)
 ========================================================
-- h0 :  
-  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren gelijk gebleven
-- h1 :  
-  - footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren groter geworden
+***Ho***  
+- footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren gelijk gebleven
+
+***H1***  
+- footprint van de voertuigen die ongelukken veroorzaken binnen de bebouwde kom waar een maximumsnelheid geld is de afgelopen jaren groter geworden
 
 
 Antwoord - visueel (1)
@@ -514,4 +511,10 @@ Conclusie
 ========================================================
 
 **Op basis van de BRON dataset is te herleiden dat voertuigen met een grotere footprint de afgelopen jaren significant meer bij ongevallen betrokken zijn geweest bij ongelukken in 30 km-zones binnen de bebouwde kom vergeleken met eerdere jaartallen.**  
+
+
+Vragen
+========================================================
+
+**???**  
 
