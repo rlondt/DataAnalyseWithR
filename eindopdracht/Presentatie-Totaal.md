@@ -108,7 +108,12 @@ df_randstad <- df_leeftijd  %>%
 df_rest <- df_leeftijd  %>%
   mutate(randstad = PVE_NAAM %in% randstad) %>%
   filter(randstad==FALSE)
+```
 
+Beantwoording Visueel
+========================================================
+
+```r
 data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
 , gemiddelde=c(mean(df_rest$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
 , stddev=c(sd(df_rest$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
@@ -137,7 +142,7 @@ ggplot()+
 
 Beantwoording Visueel
 ========================================================
-![plot of chunk unnamed-chunk-6](Presentatie-Totaal-figure/unnamed-chunk-6-1.png)
+![plot of chunk unnamed-chunk-7](Presentatie-Totaal-figure/unnamed-chunk-7-1.png)
 
 
 Beantwoording Visueel
@@ -153,7 +158,7 @@ ggplot(NULL, aes(x, colour= Legenda)) +
 
 Beantwoording Visueel
 ========================================================
-![plot of chunk unnamed-chunk-8](Presentatie-Totaal-figure/unnamed-chunk-8-1.png)
+![plot of chunk unnamed-chunk-9](Presentatie-Totaal-figure/unnamed-chunk-9-1.png)
 
 
 Beantwoording Statistisch
@@ -161,21 +166,21 @@ Beantwoording Statistisch
 
 
 ```r
-t.test(df_randstad$leeftijd_voertuig, mu=mean(df_rest$leeftijd_voertuig), alternative = "less", conf.level = 0.99)
+t.test(df_randstad$leeftijd_voertuig, df_rest$leeftijd_voertuig, mu=0, alternative = "less", conf.level = 0.99)
 ```
 
 ```
 
-	One Sample t-test
+	Welch Two Sample t-test
 
-data:  df_randstad$leeftijd_voertuig
-t = -82.673, df = 226270, p-value < 2.2e-16
-alternative hypothesis: true mean is less than 116.4835
+data:  df_randstad$leeftijd_voertuig and df_rest$leeftijd_voertuig
+t = -59.482, df = 482680, p-value < 2.2e-16
+alternative hypothesis: true difference in means is less than 0
 99 percent confidence interval:
-     -Inf 104.1398
+      -Inf -12.20441
 sample estimates:
-mean of x 
- 103.7824 
+mean of x mean of y 
+ 103.7824  116.4835 
 ```
 
 
@@ -215,7 +220,7 @@ Dataset
 
 Plot - Diagram aantallen ongevallen per maand
 ========================================================
-![plot of chunk unnamed-chunk-10](Presentatie-Totaal-figure/unnamed-chunk-10-1.png)
+![plot of chunk unnamed-chunk-11](Presentatie-Totaal-figure/unnamed-chunk-11-1.png)
 
 Vraagstelling
 ========================================================
@@ -259,7 +264,7 @@ ggplot(df_hyp, aes(x=jaar, y=footprint)) +
 
 Antwoord - visueel (1)
 ========================================================
-![plot of chunk unnamed-chunk-12](Presentatie-Totaal-figure/unnamed-chunk-12-1.png)
+![plot of chunk unnamed-chunk-13](Presentatie-Totaal-figure/unnamed-chunk-13-1.png)
 - daling zichtbaar in de laatste twee jaren ten opzichte van de rest van de historie  
 
 - **Geen bewijs voor de stelling** 
@@ -330,7 +335,7 @@ $jaar
 
 Antwoord - statistisch
 ========================================================
-![plot of chunk unnamed-chunk-16](Presentatie-Totaal-figure/unnamed-chunk-16-1.png)
+![plot of chunk unnamed-chunk-17](Presentatie-Totaal-figure/unnamed-chunk-17-1.png)
 
 
 Verdieping
@@ -351,7 +356,7 @@ Verdieping
 - kunnen we zomaar de gemiddelden met elkaar vergelijken? 
 - is de verdeling normaal?
 
-![plot of chunk unnamed-chunk-18](Presentatie-Totaal-figure/unnamed-chunk-18-1.png)
+![plot of chunk unnamed-chunk-19](Presentatie-Totaal-figure/unnamed-chunk-19-1.png)
 
 - **Nee** , Anova gaat uit van een normale verdeling
 
@@ -387,7 +392,7 @@ Verdieping (2) - clusteren van footprints
 - algoritme k-means clustering
 -- hoeveel clusters? **Elbow-method** =>  **4**
 
-![plot of chunk unnamed-chunk-20](Presentatie-Totaal-figure/unnamed-chunk-20-1.png)
+![plot of chunk unnamed-chunk-21](Presentatie-Totaal-figure/unnamed-chunk-21-1.png)
 
 
 Verdieping (3) - uitvoeren van clustering
@@ -410,7 +415,7 @@ Verdieping (3) - uitvoeren van clustering
 ========================================================
 
 ** uitvoering van de clustering  
-![plot of chunk unnamed-chunk-22](Presentatie-Totaal-figure/unnamed-chunk-22-1.png)
+![plot of chunk unnamed-chunk-23](Presentatie-Totaal-figure/unnamed-chunk-23-1.png)
 
 Verdieping (4) - opnieuw valideren hypothese
 ========================================================
@@ -457,7 +462,7 @@ ggplot(df_hyp) +
 
 Antwoord(2) - visueel 
 ========================================================
-![plot of chunk unnamed-chunk-26](Presentatie-Totaal-figure/unnamed-chunk-26-1.png)
+![plot of chunk unnamed-chunk-27](Presentatie-Totaal-figure/unnamed-chunk-27-1.png)
 - stijging waarneembaar voor het cluster met grootste voertuigen
 - **Wel bewijs voor de stelling** 
 

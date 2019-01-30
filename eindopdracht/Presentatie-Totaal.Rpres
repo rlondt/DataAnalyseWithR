@@ -175,6 +175,13 @@ df_rest <- df_leeftijd  %>%
   mutate(randstad = PVE_NAAM %in% randstad) %>%
   filter(randstad==FALSE)
 
+
+```
+
+Beantwoording Visueel
+========================================================
+```{r}
+
 data.frame(categorie=c("Leeftijd overig","Leeftijd Randstad")
 , gemiddelde=c(mean(df_rest$leeftijd_voertuig), mean(df_randstad$leeftijd_voertuig))
 , stddev=c(sd(df_rest$leeftijd_voertuig), sd(df_randstad$leeftijd_voertuig)))
@@ -246,7 +253,8 @@ Beantwoording Statistisch
 ========================================================
 
 ```{r echo=TRUE, eval=TRUE, include=TRUE}
-t.test(df_randstad$leeftijd_voertuig, mu=mean(df_rest$leeftijd_voertuig), alternative = "less", conf.level = 0.99)
+
+t.test(df_randstad$leeftijd_voertuig, df_rest$leeftijd_voertuig, mu=0, alternative = "less", conf.level = 0.99)
 
 ```
 
